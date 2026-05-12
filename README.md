@@ -189,7 +189,7 @@ Key environment requirements (already learned the hard way; preserved here so th
 │   └── check_format.py    # Schema validation for cleaned records
 ├── reports/
 │   └── eda/               # EDA chart outputs (PNGs)
-├── PROGRESS_UPDATE.txt    # Full project history (decisions, bugs, trade-offs)
+├── PROGRESS_UPDATE.md     # Full project history (decisions, bugs, trade-offs)
 ├── PROJECT_SUMMARY.md     # Detailed dataset and source documentation
 └── README.md              # This file
 ```
