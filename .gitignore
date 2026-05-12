@@ -1,0 +1,59 @@
+# --- Data (large, generated, or already hosted elsewhere) -------------------
+data/
+logs/
+reports/
+
+# --- Model artifacts (live on HuggingFace at Maximuz23/Text-OSINT) ----------
+checkpoint-*/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+
+# --- Secrets and local config -----------------------------------------------
+.env
+.env.*
+!.env.example
+*.session
+*.session-journal
+*.token
+*token*.txt
+*.key
+*.pem
+
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.Python
+build/
+dist/
+
+# --- Virtual envs (env lives outside repo at ~/osint-env, but be safe) ------
+.venv/
+venv/
+env/
+
+# --- Jupyter ----------------------------------------------------------------
+.ipynb_checkpoints/
+
+# Superseded notebooks (kept locally, excluded from public repo)
+smoke_test.ipynb
+test run.ipynb
+
+# --- IDE / editor -----------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS junk ----------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# --- Working / scratch files ------------------------------------------------
+RESUME_TOMORROW.txt
