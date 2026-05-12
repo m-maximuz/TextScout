@@ -116,6 +116,8 @@ Final dataset composition: 74.5% human-curated authoritative sources, 24.8% AI-g
 
 Detailed source-by-source descriptions and licenses are in [`PROJECT_SUMMARY.md`](PROJECT_SUMMARY.md).
 
+Exploratory analysis of the cleaned dataset (source distribution, length stats, IOC coverage, MITRE ATT&CK technique spread, kill chain phase coverage) is in [`eda.ipynb`](eda.ipynb), with charts also available as standalone PNGs in [`reports/eda/`](reports/eda/).
+
 ---
 
 ## Data Pipeline
@@ -178,10 +180,15 @@ Key environment requirements (already learned the hard way; preserved here so th
 .
 ├── osint-ai.ipynb         # Production training notebook (Kaggle)
 ├── ai-test.ipynb          # Inference + smoke test notebook (used to ship v1)
+├── eda.ipynb              # Exploratory data analysis (pre-executed)
 ├── scripts/
 │   ├── clean_pipeline.py  # Cleaning + instruction template pipeline
 │   ├── collect_*.py       # Per-source collectors (22 sources)
+│   ├── eda.py             # Standalone EDA script (mirrors eda.ipynb)
+│   ├── data_profiling.py  # Dataset profiling helpers
 │   └── check_format.py    # Schema validation for cleaned records
+├── reports/
+│   └── eda/               # EDA chart outputs (PNGs)
 ├── PROGRESS_UPDATE.txt    # Full project history (decisions, bugs, trade-offs)
 ├── PROJECT_SUMMARY.md     # Detailed dataset and source documentation
 └── README.md              # This file

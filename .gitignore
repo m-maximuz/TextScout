@@ -2,6 +2,10 @@
 data/
 logs/
 reports/
+# But DO commit the EDA chart outputs so they're browsable on GitHub
+!reports/
+!reports/eda/
+!reports/eda/*.png
 
 # --- Model artifacts (live on HuggingFace at Maximuz23/Text-OSINT) ----------
 checkpoint-*/
