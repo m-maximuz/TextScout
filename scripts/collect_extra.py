@@ -1,8 +1,8 @@
 import requests, json, os, time, hashlib
 
 RAW = os.path.expanduser("~/osint-project/data/raw")
-ABUSECH_KEY  = "1504b27b446c94e828c56a8932d9d8ca1d90ea1ac7f4a4dc"
-VT_KEY       = "917f302adb94e73a7bc8e8b79ebd831f1130152afa942afa998fd9e8701005eb"
+ABUSECH_KEY  = os.environ.get("ABUSECH_KEY", "")
+VT_KEY       = os.environ.get("VT_KEY", "")
 
 def make_hash(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()

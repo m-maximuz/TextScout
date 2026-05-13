@@ -2,9 +2,9 @@ import requests, json, os, time, hashlib
 from datetime import datetime, timezone, timedelta
 
 RAW = os.path.expanduser("~/osint-project/data/raw")
-ABUSECH_KEY = "1504b27b446c94e828c56a8932d9d8ca1d90ea1ac7f4a4dc"
-OTX_KEY     = "421593bacfab3ea0b0e2647d3d9e9496223252514435947deb2ff6a43e1ae76b"
-NVD_KEY     = "B8de124c-8edd-4f4a-89f9-336131ba17a4"
+ABUSECH_KEY = os.environ.get("ABUSECH_KEY", "")
+OTX_KEY     = os.environ.get("OTX_KEY", "")
+NVD_KEY     = os.environ.get("NVD_KEY", "")
 
 def make_hash(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()

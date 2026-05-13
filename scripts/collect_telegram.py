@@ -2,8 +2,8 @@ import json, os, time, hashlib
 from telethon.sync import TelegramClient
 from telethon.errors import FloodWaitError, ChannelPrivateError
 
-API_ID   = "38891838"
-API_HASH = "aef4a022c3276fddb00b88005a8f1409"
+API_ID   = os.environ.get("TELEGRAM_API_ID")
+API_HASH = os.environ.get("TELEGRAM_API_HASH")
 RAW      = os.path.expanduser("~/osint-project/data/raw")
 
 CHANNELS = [

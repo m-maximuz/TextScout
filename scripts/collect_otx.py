@@ -3,7 +3,7 @@ import json
 import os
 
 OUTPUT = os.path.expanduser("~/osint-project/data/raw/otx.jsonl")
-OTX_KEY = "698c7f352ff347e48ff4edac061e9e26b4a2ffbca2da64d2a8fc99e05e8b5386"
+OTX_KEY = os.environ.get("OTX_KEY", "")
 
 def collect():
     print("[*] Collecting from OTX AlienVault...")

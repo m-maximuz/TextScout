@@ -3,7 +3,7 @@ import json
 import os
 
 OUTPUT = os.path.expanduser("~/osint-project/data/raw/abusech.jsonl")
-AUTH_KEY = "67f2c00a9555da94cba3e5fe511977413448ff13c17d1bad"
+AUTH_KEY = os.environ.get("ABUSECH_KEY", "")
 
 def collect():
     print("[*] Collecting from abuse.ch URLhaus...")
