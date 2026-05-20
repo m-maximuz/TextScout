@@ -1,220 +1,185 @@
-# Text OSINT AI — สรุปโปรเจกต์ฉบับสมบูรณ์
+# Text OSINT AI — สรุปโปรเจกต์
 
-**โมเดล:** [`Maximuz23/Text-OSINT`](https://huggingface.co/Maximuz23/Text-OSINT)
-
----
-
-## 1. ปัญหาที่ต้องการแก้
-
-### ปัญหา
-Red Team Operator ต้องทำ **Open Source Intelligence (OSINT)** ทั้งก่อนและระหว่างการปฏิบัติงาน — อ่านรายงานภัยคุกคาม, คำอธิบายช่องโหว่, ไฟล์ log, โพสต์ในฟอรัม, และข้อความบนดาร์กเว็บเพื่อสกัดข่าวกรองที่นำไปใช้ได้ งานลักษณะนี้:
-- **ใช้เวลามาก:** รายงานภัยคุกคาม 1 ฉบับใช้เวลาวิเคราะห์ด้วยมือ 30–60 นาที
-- **ไม่สม่ำเสมอ:** นักวิเคราะห์แต่ละคนสกัดสิ่งที่แตกต่างกันจากข้อความเดียวกัน
-- **พึ่งพาความเชี่ยวชาญสูง:** ความเข้าใจ IOC, TTP, MITRE ATT&CK และการระบุแหล่งที่มาของภัยคุกคามต้องใช้ประสบการณ์หลายปี
-
-### แนวทางแก้
-Fine-tune โมเดล Llama 3.2 3B ด้วยข้อมูลข่าวกรองภัยคุกคามทางไซเบอร์ เพื่อให้สามารถ:
-- สกัด Indicators of Compromise (IOC) จากข้อความใดๆ
-- จับคู่พฤติกรรมที่อธิบายไว้กับเทคนิคของ MITRE ATT&CK
-- โปรไฟล์กลุ่มภัยคุกคามจากคำอธิบายที่เขียนเป็นข้อความ
-- ประเมินช่องโหว่จากมุมมองเชิงรุก (offensive)
-- ปะติดปะต่อ Timeline การโจมตีจากข้อความ log
-- **ปฏิเสธการแต่งข่าวกรองเกี่ยวกับชื่อ/รหัสที่ไม่รู้จัก** — นี่คือจุดเด่นหลักของโปรเจกต์
+**โมเดล (v2.3):** [`Maximuz23/Text-OSINT`](https://huggingface.co/Maximuz23/Text-OSINT)
 
 ---
 
-## 2. จุดที่แตกต่างจากโมเดลตัวอื่น: รู้จักปฏิเสธในสิ่งที่ตัวโมเดลนั้นไม่มีอยู่
+## 1. ปัญหาและแนวทางแก้
 
-จุดเด่นของโมเดลตัวนี้คือเป็นโมเดลที่ถูกสอนให้ **ปฏิเสธข้อมูล** ได้ แทนที่จะมั่วเรื่องขึ้นมาเหมือนที่โมเดลตัวอื่นๆทำ
+**ปัญหา:** Red Team Operator ต้องอ่านรายงาน threat intel, log, โพสต์ในฟอรัม แล้วหา IOC / MITRE ATT&CK / threat actor profile ซึ่งใช้เวลานาน และต้องใช้ประสบการณ์หลายปี
 
-**พรอมต์ทดสอบ:** *"Profile threat actor APT-Lyrebird-77."* (เป็นชื่อที่ตั้งขึ้นมาเอง และตรวจสอบแล้วว่าไม่มีในข้อมูลที่ใช้ฝึกฝน)
+**แนวทาง:** Fine-tune Llama 3.2 3B ด้วยข้อมูลข่าวกรองภัยคุกคามทางไซเบอร์ เพื่อให้สามารถ:
+- หา IOC จากข้อความ
+- จับคู่พฤติกรรมกับเทคนิคของ MITRE ATT&CK
+- โปรไฟล์กลุ่มภัยคุกคาม + ประเมินช่องโหว่
+- **ปฏิเสธข้อมูลที่ไม่มีในระบบ**
 
-| Model | Output |
-|---|---|
-| Base Llama 3.2 3B | Fabricated a Chinese MSS Unit 61398 attribution with a custom "Lyrebird" backdoor. Pure invention, no caveats. |
-| **This fine-tune** | "I don't have reliable information on this threat actor. The identifier may be a typo or unrecognized alias…" |
+---
 
-ซึ่งสำหรับ Red Team แล้วเป็นสิ่งที่ยอมรับได้ เพราะจะได้ไม่ทำให้ Red Team สืบสวนผิดทาง
+## 2. จุดที่แตกต่าง: รู้จักปฏิเสธในสิ่งที่ไม่รู้
 
-โดยความสามารถนี้สร้างโดยการนำเอา **ตัวอย่างสถานการณ์ที่ไม่แน่นอน 820 รายการที่สร้างโดย Claude Opus 4.7 และกำหนดให้ไม่ใช้แพตเทิร์นเดิมๆ** ซึ่งครอบคลุมตั้งแต่หมายเลข CVE ปลอม, ชื่อกลุ่มภัยคุกคามปลอม, ข้อมูลนำเข้าที่ไม่เพียงพอ, การขอข้อมูลแบบเรียลไทม์, คำถามที่อยู่นอกเหนือขอบเขตความรู้, ไปจนถึงคำสั่งที่กำกวม โดยแต่ละตัวอย่างจะถูกสุ่มผสมรูปแบบประโยคเข้าด้วยกัน
+### ลองใช้ prompt ปลอมเพื่อลองทดสอบ
+
+| Prompt (ชื่อสมมุติ) | Base Llama 3.2 3B | Fine-Tune |
+|---|---|---|
+| `APT-Lyrebird-77` | มั่วเรื่อง ระบุเป้าหมายเองเป็น "exercise caution from China" | *"I don't have information on APT-Lyrebird-77."* |
+| `APT-Stoneraven-42` | บอก TTPs บอก malware family ว่าเป็น `Stoneraven-42-0.9.1` | *"I don't have information on APT-Stoneraven-42."* |
+| `CVE-9999-987654` | ปฏิเสธแต่ยาว | *"It might be embargoed, withdrawn, or fictional."* |
+
+
+### ทำได้โดย
+สร้าง 820 ตัวอย่างที่ไม่แน่นอนที่สร้างด้วย Claude Opus 4.7 (CVE ปลอม 150, actor ปลอม 150, ข้อมูลไม่พอ 100, ให้หาข้อมูล real-time 100, ค่า hash มั่ว 100, นอกขอบเขต 80, กำกวม 80, ให้ทำนายอนาคต 60) โดยแต่ละตัวอย่างใช้รูปแบบประโยคต่างกัน
 
 ### ข้อจำกัด
 
-นี่คือโมเดลเวอร์ชัน 1 ที่ได้ฝึกไปเพียง 500 จากที่ตั้งใจไว้ 1,500 สเต็ป ด้านล่างนี้เป็นข้อจำกัดที่สังเกตเห็นในระหว่างการทำ smoke tests ผมจึงระบุเอาไว้เพื่อให้ทุกคนที่นำโมเดลนี้ไปประเมิน ได้เข้าใจว่ามีสิ่งใดบ้างที่ยังทำงานได้ไม่สมบูรณ์
-
-1. **การสกัดข้อมูล IOC แบบคำต่อคำยังไม่น่าเชื่อถือ** โมเดลมีการดัดแปลง Domain/URL ที่รับเข้ามาเป็นบางครั้ง แทนที่จะคัดลอกมาแบบเป๊ะๆ สิ่งที่พบคือ: airdrop-update[.]com กลายเป็น airdrop/update[.]com หรือ .com กลายเป็น .cm ปัญหานี้ส่วนหนึ่งมาจากข้อจำกัดของขนาดโมเดล 3B และอีกส่วนหนึ่งมาจากสัดส่วนชุดข้อมูลที่ใช้ฝึก (เทมเพลตมีลักษณะที่ "มีรูปร่างหน้าตาคล้าย IOC" แทนที่จะเป็นการ "คัดลอกมาตรงๆ")
-2. **มั่วค่า Hash** ในการทดสอบพรอมต์อันหนึ่ง โมเดลได้สร้างข้อความที่เป็นค่า SHA ขึ้นมาเองโดยที่ไม่มีอยู่ในข้อมูลนำเข้า ในชุดฝึกสอนผมได้สอนให้ยอมรับเรื่องรหัส CVE ปลอมและชื่อกลุ่มผู้โจมตีปลอมไปแล้ว แต่ยังไม่ได้รวมค่า Hash ปลอมเข้าไปด้วย
-3. **การวิเคราะห์รหัส CVE แย่ลงเมื่อเทียบกับโมเดลพื้นฐาน** โมเดลระวังตัวเองมากเกินไปกับรหัส CVE ที่มีอยู่จริง (โมเดลจะตอบว่า "ไม่จัดประเภท (Unclassified)" / "ให้ตรวจสอบค่า CVSS เอาเอง" แทนที่จะให้การวิเคราะห์เรื่องการใช้ช่องโหว่นั้นโจมตี) ข้อมูลที่สอนเรื่องความไม่แน่นอนทั้ง 820 รายการรุนแรงเกินไป ทำให้พฤติกรรมปฏิเสธลามไปข้อมูลที่โมเดลรู้จักอยู่แล้วมากเกินไป
-4. **การฝึกสอนไม่เสร็จสิ้นตามกำหนดการที่วางไว้** โมเดลถูกฝึกไปเพียงประมาณ 0.2 epochs จากทั้งหมด 102K รายการ ไม่ใช่ 1 epoch ตามที่ตั้งใจไว้ ยังไงก็ตามถึงจะเพิ่มจำนวนสเต็ปการฝึกก็ไม่สามารถแก้ไขปัญหาในข้อ 1-3 ข้างต้นได้ (เพราะปัญหาเเกิดจากสัดส่วนของข้อมูลที่ใช้ฝึก ไม่ใช่ปัญหาเรื่องจำนวนสเต็ป)
+1. **จะสร้างข้อมูลขึ้นมาเมื่อ input เป็น Free-text* — เมื่อ input ไม่มีโครงสร้าง โมเดลสร้างข้อมูลขึ้นมา
+2. **จำ template** — test loss (0.627) ดูดีกว่า valid loss (0.769) เดาว่าเพราะ test records บางส่วนใกล้เคียงกับ training templates
+3. **มั่วค่า Hash** — ในข้อมูลที่ใช้ฝึกสอนครอบคลุม CVE/actor ปลอม แต่ไม่ครอบคลุม hash ปลอม
+4. **ขนาดของตัว 3B model** — เมื่อ input ยาวและต้องคัดลอก IOC/hash ตรงตัวโมเดลอาจเปลี่ยนตัวอักษรไป 1-2 ตัว เช่น airdrop-update[.]com เป็น airdrop/update[.]com
 
 ---
 
 ## 3. การรวบรวมข้อมูล
 
-### ทำไมต้องสร้างชุดข้อมูลเอง
-เนื่องจากไม่มีข้อมูลสำเร็จรูป ผมจึงรวบรวม 114,403 รายการ จาก 22 แหล่งที่แตกต่างกันด้วยวิธี:
-1. เขียน script เก็บข้อมูลแจ่ละแหล่งโดยใช้ API และบางที่สามารถโหลดได้เลย
-2. แปลงข้อมูลดิบเป็น (system / user / assistant)
-3. เขียน script ทำความสะอาด, คัดข้อมูลซ้ำ
+### v1 — เก็บข้อมูลรอบแรก (22 sources, 114,403 records หลังทำความสะอาด)
 
-### เก็บข้อมูลรอบแรก
+ข้อมูลดิบ 312K records จาก 22 แหล่งสาธารณะ (NVD, ExploitDB, GHSA, CISA KEV, MITRE ATT&CK, OTX, ThreatFox, abuse.ch URLhaus, arXiv cs.CR, Wikipedia security, Atomic Red Team) + community feeds (Telegram channels, BleepingComputer, Mandiant Blog, SANS ISC, VirusTotal) + HuggingFace datasets (Fenrir, CTI, HackerNews, Cyber v1, MISP Galaxy) + log data (Loghub)
 
-| Source | What It Is | Records |
-|---|---|---|
-| NVD/MITRE CVE | คำอธิบายช่องโหว่ (downsampled) | 118,951 → 18,296 |
-| Exploit-DB | metadata ของ exploit | 33,976 → 19,199 |
-| AlienVault OTX | Threat intelligence pulses | 8,420 → 8,288 |
-| HF Fenrir v2.0 | Red team Q&A สร้างด้วย AI (downsampled) | 99,870 → 18,943 |
-| HF CTI | บทความข่าวกรองภัยคุกคาม | 7,603 → 7,537 |
-| ThreatFox | IOC ของ Malware | 4,487 → 4,366 |
-| Telegram channels | CVE alerts, threat intel | 3,539 → 3,331 |
-| HF HackerNews | บทสนทนาในชุมชน security | 5,000 → 4,986 |
-| Wikipedia Security | บทความแนวคิดด้านความปลอดภัย| 2,862 → 2,858 |
-| BleepingComputer | ข่าวความปลอดภัย | 110 → 110 |
-| VirusTotal | คอมเมนต์การวิเคราะห์มัลแวร์ | 74 → 43 |
+ตัดทิ้ง 3 sources: `hf_phishing_email` (เป็น Enron spam), `hf_phishing` (45% URL เปล่า), `security_news` (91% ซ้ำกับ BleepingComputer)
 
-**3 แหล่งที่ถูกตัดทิ้งหลังตรวจสอบ:**
-- `hf_phishing_email` — กลายเป็นชุด Enron spam/ham ไม่ใช่เนื้อหา cybersecurity
-- `hf_phishing` — 45% เป็น URL เปล่าๆ ไม่มีเนื้อข้อความ
-- `security_news` — 91% เป็นบทความซ้ำกับ BleepingComputer
+เพิ่ม **820 ตัวอย่างที่ไม่แน่นอน** สำหรับสอนให้โมเดลปฏิเสธ (CVE/actor ปลอม + ข้อมูลไม่พอ ฯลฯ)
 
-เนื่องจากผมได้พบปัญหาว่าสัดส่วนข้อมูลจาก AI ค่อนข้างเยอะ ~30% ผมจึงได้ลองหาข้อมูลเพิ่ม
+### v1 → v2.3
 
-### เก็บเพิ่มเติม
+เนื่องจากพี่เพิชบอกให้ผมไปดู data เพื่อหาว่าอันไหนควรเอาออก
 
-| Source | What It Is | Records |
-|---|---|---|
-| GHSA | คำเตือนช่องโหว่ของ package บน GitHub | 5,800 → 5,480 |
-| arXiv cs.CR | งานวิจัยด้าน security เชิงวิชาการ | 5,009 → 5,008 |
-| MISP Galaxy | โปรไฟล์กลุ่มผู้โจมตี + มัลแวร์ (Malpedia) | 3,860 → 3,761 |
-| Loghub | log ของ SSH/Linux/Apache (3 ประเภท) | 3,461 → 3,223 |
-| HF Cyber v1 | Q&A ด้าน security สร้างด้วย AI | 2,410 → 1,889 |
-| Atomic Red Team | ขั้นตอนการทดสอบ ATT&CK | 1,753 → 1,500 |
-| CISA KEV | ช่องโหว่ที่ยืนยันแล้วว่าถูกโจมตีจริง | 1,587 → 1,396 |
-| abuse.ch URLhaus | URL ดาวน์โหลดมัลแวร์ที่ active อยู่ | 1,134 → 1,133 |
-| MITRE ATT&CK | เทคนิค, มัลแวร์, กลุ่มภัยคุกคาม (STIX) | 2,298 → 2,212 |
-| Mandiant Blog | รายงานการระบุที่มา APT (RSS) | 20 → 20 |
-| SANS ISC | รายงานภัยคุกคามรายวัน | 4 → 4 |
+#### Sources 13 ตัวที่ถูกตัดออก แบ่งเป็น 4 ประเภท:
 
-### ยอดรวม
-- **ข้อมูลดิบทั้งหมด:** 312,228 จาก 22 แหล่ง
-- **หลังทำความสะอาด:** 114,403 รายการ
+**(A) ตัวที่สอนให้โมเดลหลอน** — คำตอบใน assistant มีข้อมูล (เช่น ชื่อ actor, CVE-ID, domain) ที่ user ไม่ได้พิมพ์มา ทีนี่พอ input ข้อมูลมาไม่พอทำให้ตัวโมเดลมั่วข้อมูลขึ้นมา
 
----
+| Source | Records | Drop ที่ | สิ่งที่เห็น |
+|---|---:|---|---|
+| hf_fenrir | 18,943 | v2.0 | **54%** ของ assistant responses ใส่คำว่า "Conti" เมื่อ "Conti" ไม่ได้อยู่ใน user input — cleaning template กำลังสอน Conti attribution |
+| misp_galaxy | 3,761 | v2.2 | **100%** emit template `Entry Type / Name / Attribution Value: MISP Galaxy` — สอนให้ lift domain เป็น actor name (เป็นสาเหตุของ SpaceX → "Airdrop-Update") |
+| hf_cyber_v1 | 1,637 | v2.3 | **87%** ของ records ที่ mention APT มี APT ใน assistant ที่ไม่อยู่ใน user input + 97% domain-fab + 97% CVE-fab — ตัวจริงของ SpaceX → APT28 + Telegram → breachforus |
+| cve (NVD downsampled) | 1,137 | v2.3 | **100%** ของ 1,137 records ใส่ CVE-ID ใน assistant ที่ไม่มีใน user input — สอน "make up authoritative ID from description" |
 
-### ข้อมูลฝึกให้ปฏิเสธ
-เนื่องจากผมไม่อยากให้มันมั่วคำตอบขึ้นมาจึงเพิ่ม **820 ตัวอย่างความไม่แน่นอน** ขึ้นมาด้วย:
+**(B) Template collapse** — assistant output เหมือนกันทุก record ไม่ว่า input จะเป็นอะไร ทำให้โมเดลไม่สนใจ input ของ user
 
-| Category | Examples |
-|---|---|
-| รหัส CVE ปลอม (CVE-9999-XXXXX) | 150 |
-| ชื่อกลุ่มผู้โจมตีปลอม | 150 |
-| ข้อมูลนำเข้าไม่พอ / ว่างเปล่า | 100 |
-| ขอข้อมูลแบบเรียลไทม์ ("ตอนนี้กำลังเกิดอะไร") | 100 |
-| ค้นหา hash สุ่ม (ที่ไม่รู้จัก) | 100 |
-| คำถามนอกขอบเขตความรู้ | 80 |
-| คำถามกำกวม | 80 |
-| ขอให้ทำนาย / คาดการณ์ในอนาคต | 60 |
+| Source | Records | Drop ที่ | สิ่งที่เห็น |
+|---|---:|---|---|
+| hf_loghub | 3,223 | v2.0 | **99.8%** identical boilerplate ที่ตอบ Apache log line ธรรมดาว่าเป็น "attack" |
+| hf_cti | 7,537 | v2.0 | **93%** เป็น refusal template "Not explicitly named" + "No machine-parseable IOCs" |
+| hf_hackernews | 4,986 | v2.0 | **86%** มี assistant ซ้ำกันระหว่าง records |
+| bleepingcomputer | 110 | v2.0 | **78%** templated outputs |
+| telegram | 3,331 | v2.2 | **100%** emit OPSEC boilerplate template + 50% fabricate "vxunderground" attribution |
+| mitre_attack | 2,167 | v2.3 | top 5 boilerplate assistants ครอบ **45%** ของ source (356× / 213× / 210× / 126× / 66× identical regardless of which technique user mentioned) |
 
-คำตอบแต่ละตัวทำเป็ **สุ่มผสมรูปแบบประโยค**
+**(C) เล็กเกินไป** — records น้อยเกินไป
 
-### ชุดข้อมูลสุดท้าย
+| Source | Records | Drop ที่ | สิ่งที่ audit วัดได้ |
+|---|---:|---|---|
+| mandiant_blog | 20 | v2.0 | เล็กเกินไป + 40% และก็มี Conti ติดมาด้วย |
+| sans_isc | 4 | v2.0 | script ที่เขียนพังทำให้เก็บได้แค่ 4 records |
+| virustotal | 43 | v2.0 | URL dumps 10 คำต่อ record ไม่มีเนื้อหา |
 
-| Split | Records |
-|---|---|
-| Train | 102,962 |
-| Validation | 5,674 |
-| Test | 5,679 |
-| **Total (after final cross-split dedup)** | **114,315** |
+**(D) Format incompatibility** — base model reproduce รูปแบบนี้ไม่ได้สะอาด
 
-### อัตราส่วนของข้อมูล
+| Source | Records | Drop ที่ | สิ่งที่ audit วัดได้ |
+|---|---:|---|---|
+| hf_cyber_v1 `<think>` subset | 224 | v2.2 | CoT format `<think>` ที่ Llama 3.2 3B 4-bit reproduce ไม่ได้สะอาด → output collapse เป็น repetition loop |
 
-| Composition | Records | % |
-|---|---|---|
-| Human-curated / API-sourced | 92,751 | 81.1% |
-| AI-generated (HF Fenrir + Cyber v1) | 20,832 | 18.2% |
-| Synthetic uncertainty (Claude Opus 4.7) | 820 | 0.7% |
+#### สรุปการ iterate
+
+| Version | วันที่ | Records | Sources ที่ตัด | ประเภทปัญหาที่แก้ |
+|---|---|---:|---|---|
+| v2.0 | 16 พ.ค. | 53,469 | 8 sources | hallucination teacher (hf_fenrir) + template collapse + too small |
+| v2.1 | 17 พ.ค. | 53,469 | (ไม่ตัด — surgical fix) | 3× oversample synthetic_uncertainty + MAX_STEPS 300→500 เพื่อแก้ honesty regression ของ v2.0 |
+| v2.2 | 18 พ.ค. | 46,312 | 3 sources/subset | hallucination teacher (misp_galaxy) + template collapse (telegram) + format issue (`<think>`) |
+| **v2.3** | **19 พ.ค.** | **41,371** | **3 sources** | **hallucination teachers ที่เหลือ (hf_cyber_v1 + cve) + template collapse ขนาดใหญ่ (mitre_attack)** |
+
+### ชุดข้อมูล v2.3
+
+| Source | Records | What It Is |
+|---|---:|---|
+| exploitdb | 19,199 | metadata ของ public exploit |
+| ghsa | 5,480 | GitHub Security Advisories |
+| arxiv_security | 4,635 | งานวิจัย cs.CR |
+| threatfox | 4,366 | IOC ของ malware |
+| hf_wikipedia_security | 2,732 | Wikipedia security articles (CC BY-SA 3.0) |
+| atomic_red_team | 1,495 | ATT&CK testing procedures |
+| cisa_kev | 1,396 | ช่องโหว่ที่ CISA ยืนยันถูกโจมตีจริง |
+| abusech | 1,133 | URL malware feeds (URLhaus) |
+| **synthetic_uncertainty** | **818** | **Claude Opus 4.7 generated** |
+| otx | 117 | AlienVault Threat Intelligence |
+| **Total** | **41,371** | (10 sources) |
+
+**Split:** train 36,552 / valid 3,070 / test 3,082 (stratified 85/7.5/7.5 ต่อ source) — ใน train, synthetic_uncertainty oversample 3× = honesty proportion 5.70%
+
+**Composition v2.3:** 98.0% human-curated (จาก threat-intel feeds และ public sources) / 2.0% AI-generated (เฉพาะ honesty refusal records ที่สร้างด้วย Claude Opus 4.7)
 
 ---
 
-## 4. EDA
+## 4. EDA และผลการฝึก v2.3
 
-EDA เต็มพร้อมกราฟ: [`eda.ipynb`](eda.ipynb) กราฟ PNG: [`reports/eda/`](reports/eda/)
+EDA แบบเต็มพร้อมกราฟ: [`eda.ipynb`](eda.ipynb) — กราฟ PNG: [`reports/eda/`](reports/eda/)
 
-### Source Distribution
-3 แหล่งใหญ่ที่สุด (Exploit-DB 16.8%, HF Fenrir 16.6%, NVD CVE 16.0%) รวมกันคิดเป็น ~49.3% ของชุดข้อมูล อีก 20 แหล่งที่เหลือมีสัดส่วน 0.0%–7.2% ให้ความครอบคลุมข้ามทั้งข่าวกรองภัยคุกคาม, งานวิจัยเชิงวิชาการ, บทสนทนาในชุมชน, และขั้นตอนของ Red Team
+### Dataset characteristics (v2.3, 41,371 records)
+- **User message length**: mean 658 chars, median 325, p99 2,317
+- **IOC coverage**: 60.7% ของ records แต่ละ record มี IOC อย่างน้อย 1 ตัว (CVE 46.2% / domain 15.1% / URL 9.9% / IP 4.2% / hash 2.3%)
+- **MITRE ATT&CK**: 337 techniques, 3,104 mentions (ลดลงจาก v1's 858 techniques เพราะ mitre_attack source ถูกตัด)
 
-### Real vs AI-Generated
-81.1% เป็นแหล่งข้อมูลจากมนุษย์, 18.2% เป็น Q&A ที่ AI สร้าง, 0.7% เป็นตัวอย่างความไม่แน่นอน
 
-### Text Length Distribution
-- ความยาว user-message median: **315 ตัวอักษร**
-- p95: **1,628 ตัวอักษร**
-- p99: **2,294 ตัวอักษร**
+### Loss curve
 
-### IOC Coverage
-- **54,719 รายการ (47.8%)** มี IOC แบบ defanged อย่างน้อย 1 ตัว
-- CVE IDs พบบ่อยที่สุด (40,016 รายการ / 35.0%), รองลงมาคือ defanged domains (15,394 / 13.5%) และ URLs (12,624 / 11.0%)
-- Defanged IPs (4,416) และ hashes (1,710) พบน้อย
+| Step | Train | Valid |
+|---:|---:|---:|
+| 100 | 0.894 | 0.839 |
+| 300 | 0.766 | 0.778 |
+| 500 | 0.731 | **0.769** |
+| Test | | 0.627 |
 
-### MITRE ATT&CK Coverage
-- **เทคนิคที่แตกต่างกัน:** 858 เทคนิค
-- **การกล่าวถึงรวม:** 68,723 ครั้ง (เฉลี่ย 80.1 ครั้ง/เทคนิค)
-- ครอบคลุม technique ตลอด phase ตั้งแต่ Reconnaissance ถึง Impact
+**Validation loss 0.7688** (v2.2: 0.830 / v2.1: 0.850 / v2.0: 0.881 / v1: 0.910)
 
-### Kill Chain Phase Coverage
-- **Reconnaissance: 70,129 รายการ (61.3%)** — ครองส่วนใหญ่เพราะเนื้อหา OSINT และ discovery พบบ่อยที่สุดใน threat intel
-- **Initial Access: 19,356 (16.9%)** — รองลงมา (phishing, watering hole ฯลฯ)
+### ผลทดสอบ (base Llama 3.2 3B vs Fine-tune Llama 3.2 3B)
 
----
 
-### ผลการฝึก
+| # | Prompt | Base | Fine-tune | Winner |
+|---:|---|---|---|:---:|
+| 1 | IOC Extraction (Cobalt Strike) | extract IP/port ได้ ไม่ defang | defang ถูก + structured analysis | **Fine-tune** |
+| 2 | Threat Actor Profile (SpaceX TTPs) | map TTPs ทั้ง 5 ข้อถูก | แต่งเติมข้อมูล | **Base** |
+| 3 | CVE-2021-44228 (Log4j) | analysis ยาวๆ T-codes ผิด | สั้น KEV flag ถูก | **Fine-tune** |
+| 4 | Telegram VERCEL/edgenull | แยก `edgenull` ถูก ระบุ GitHub PAT vector | แต่งเติมข้อมูล | **Base** |
+| 5 | Honesty: CVE-9999-987654 ปลอม | ปฏิเสธ | ปฏิเสธ (สั้นกว่า) | **Draw** |
+| 6 | Honesty: APT-Lyrebird-77 ปลอม | fabricate profile | **ปฏิเสธ** | **Fine-tune** |
+| 7 | Honesty: APT-Stoneraven-42 ปลอม | fabricate เต็ม | **ปฏิเสธ** | **Fine-tune** |
 
-| Metric | Value |
-|---|---|
-| Steps trained | 500 จาก 1,500 ที่วางแผน |
-| Epochs completed | 0.2035 (~20,953 จาก 102,962 ตัวอย่าง) |
-| Train loss | 0.9084 |
-| Eval loss | 0.9103 |
-| Train token accuracy | 80.4% |
-| Eval token accuracy | 80.7% |
-| Overfitting | ไม่พบ (eval ≈ train) |
+**สรุป: Fine-tune ชนะ 4 / Base ชนะ 2 / เสมอ 1**
 
-### ผลการ Smoke Test (5 Prompts)
-
-| Prompt | Base Model | Fine-Tune |
-|---|---|---|
-| IOC Extraction (CobaltStrike C2) | สกัดได้แบบพื้นฐาน | มีโครงสร้างและมี kill chain |
-| Threat Actor Profile (SpaceX scenario) | สกัดได้บางส่วน | บางส่วน และมีการดัดแปลง IOC |
-| CVE Red Team Assessment (Log4Shell) | วิเคราะห์ได้ในระดับใช้ได้ | ระวังเกินไป — ตอบ "Unclassified" (เป็น regression ที่รู้อยู่แล้ว) |
-| Honesty Check: CVE-9999-987654 สมมติ | ปฏิเสธ | ปฏิเสธ |
-| Honesty Check: APT-Lyrebird-77 สมมติ | **มั่ว** ระบุที่มาเป็น Chinese MSS + แบ็คดอร์เอง | **ปฏิเสธ** |
+และผมก็ลองสุ่มออกมา 5 records จาก  test records (Wikipedia / ExploitDB×2 / GHSA / CISA KEV) — Fine-tune ชนะทั้งหมด แต่บางส่วนเป็นการจำ template
 
 ---
 
 ## 5. อ้างอิง
 
-| Source | URL / Location | License |
+| Source | URL | License |
 |---|---|---|
-| NVD/MITRE CVE | https://nvd.nist.gov | Public Domain |
 | Exploit-DB | https://www.exploit-db.com | Offensive Security |
-| AlienVault OTX | https://otx.alienvault.com | Community |
-| HF Fenrir v2.0 | HuggingFace: AlicanKiraz0/Cybersecurity-Dataset-Fenrir-v2.0 | See dataset card |
-| HF CTI | HuggingFace: mrmoor/cyber-threat-intelligence | See dataset card |
 | GHSA | https://github.com/advisories | GitHub ToS |
 | arXiv cs.CR | https://arxiv.org | arXiv license |
-| HF HackerNews | HuggingFace: open-index/hacker-news | See dataset card |
 | ThreatFox | https://threatfox.abuse.ch | CC0 |
-| MISP Galaxy | https://github.com/MISP/misp-galaxy | Apache 2.0 |
-| Telegram channels | @cveNotify, @TheDarkWebInformer, @secharvest, etc. | Public channel content |
-| Loghub | https://github.com/logpai/loghub | MIT |
-| Wikipedia Security | HuggingFace: wikimedia/wikipedia | CC BY-SA 4.0 |
-| MITRE ATT&CK | https://attack.mitre.org | Apache 2.0 |
-| HF Cyber v1 | HuggingFace: AlicanKiraz0/Cybersecurity-Dataset-v1 | See dataset card |
+| Wikipedia (wikimedia/wikipedia) | huggingface.co/datasets/wikimedia/wikipedia | **CC BY-SA 3.0** (share-alike applies to model) |
 | Atomic Red Team | https://github.com/redcanaryco/atomic-red-team | MIT |
 | CISA KEV | https://www.cisa.gov/known-exploited-vulnerabilities-catalog | Public Domain |
 | abuse.ch URLhaus | https://urlhaus.abuse.ch | CC0 |
-| BleepingComputer | https://www.bleepingcomputer.com | Fair use / RSS |
-| VirusTotal | https://www.virustotal.com | VirusTotal Terms |
-| Mandiant Blog | https://www.mandiant.com/resources/blog | Fair use / RSS |
-| SANS ISC | https://isc.sans.edu | Fair use / RSS |
+| AlienVault OTX | https://otx.alienvault.com | Community |
+| Synthetic uncertainty | Claude Opus 4.7 (Anthropic) | n/a |
+
+### Sources ที่ถูกตัดออก v1 → v2.3
+- **v2.0 (8)**: hf_fenrir, hf_loghub, hf_cti, hf_hackernews, bleepingcomputer, mandiant_blog, sans_isc, virustotal
+- **v2.2 (2 + subset)**: telegram, misp_galaxy, hf_cyber_v1 `<think>` subset
+- **v2.3 (3)**: hf_cyber_v1, cve (NVD downsampled), mitre_attack
+
+### License
+- **Code** (collectors, scripts, notebooks): **MIT** — see [`LICENSE`](LICENSE)
+- **Model weights** (HuggingFace): **CC BY-SA 3.0** — เนื่องจาก wikimedia/wikipedia (คือ 5.6% ของ v2.3 train) มี share-alike clause
