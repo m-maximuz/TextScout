@@ -37,8 +37,7 @@
 
 ## License
 
-- **Code**: MIT — see [`LICENSE`](LICENSE)
-- **Model weights** (HuggingFace): CC BY-SA 3.0 (training data 5.6% มาจาก Wikipedia ภายใต้ CC BY-SA 3.0)
+- **Code & model**: BigScience Open RAIL-M — see [`LICENSE`](LICENSE). Open use, subject to the Attachment A use restrictions (no illegal, harmful, or rights-violating use).
 
 ## จุดประสงค์การใช้งาน
 
